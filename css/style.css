@@ -37,10 +37,14 @@ html.dark {
 }
 
 *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-html { scroll-behavior:smooth; }
+html {
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;
+  text-size-adjust:100%;
+}
 
 body {
-  font-family:'Tajawal','Cairo',sans-serif;
+  font-family:'Tajawal','Cairo',-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   background:var(--off-white);
   color:var(--text);
   direction:rtl;
@@ -48,6 +52,14 @@ body {
   overflow-x:hidden;
   transition:background .3s,color .3s;
   position:relative;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding-bottom:env(safe-area-inset-bottom, 0);
+}
+
+input, select, textarea, button {
+  font-family:inherit;
+  font-size:16px; /* Prevents auto-zoom on iPhone Safari */
 }
 
 /* Subtle dot-grid background */
@@ -553,7 +565,7 @@ html.dark .form-group textarea {
 .badge-gold { background:rgba(244,180,26,.15); color:var(--gold-dark); border:1px solid rgba(244,180,26,.2); }
 .badge-green { background:rgba(34,197,94,.1); color:#16a34a; border:1px solid rgba(34,197,94,.2); }
 
-/* ─── RESPONSIVE ─────────────────────────── */
+/* ─── RESPONSIVE & MOBILE OPTIMIZATIONS ─── */
 @media(max-width:1024px) {
   .hero-inner { grid-template-columns:1fr; text-align:center; }
   .hero-features { grid-template-columns:1fr 1fr; justify-items:start; }
@@ -564,26 +576,69 @@ html.dark .form-group textarea {
   .stats-bar { grid-template-columns:repeat(2,1fr); }
   .steps { grid-template-columns:repeat(2,1fr); }
   .steps::before { display:none; }
-  .footer-top { grid-template-columns:1fr 1fr; }
+  .footer-top { grid-template-columns:1fr 1fr; gap:2rem; }
 }
+
 @media(max-width:768px) {
+  .top-bar { font-size:.7rem; padding:.35rem 1rem; flex-wrap:wrap; justify-content:center; text-align:center; }
+  .navbar { height:auto; }
+  .nav-inner { height:72px; padding:0 1rem; }
+  .nav-logo img { height:48px; }
+  .nav-logo .brand-text .main { font-size:.9rem; }
+  .nav-logo .brand-text .sub { font-size:.58rem; }
   .nav-links, .nav-actions .btn { display:none; }
   .hamburger { display:flex; }
-  .hero { padding:4rem 1.5rem 7rem; }
-  .grid-2, .grid-3 { grid-template-columns:1fr; }
+  
+  .hero { padding:3.5rem 1rem 6rem; }
+  .hero h1 { font-size:clamp(1.6rem, 5vw, 2.2rem); }
+  .hero p { font-size:.92rem; }
+  
+  .grid-2, .grid-3 { grid-template-columns:1fr; gap:1.25rem; }
   .service-detail { grid-template-columns:1fr; }
   .service-detail.reverse { direction:rtl; }
-  .floating-dock { bottom:16px; }
+  
+  .floating-dock {
+    bottom:calc(12px + env(safe-area-inset-bottom, 0));
+    padding:5px 8px;
+    gap:2px;
+    width:calc(100% - 24px);
+    max-width:390px;
+    justify-content:space-around;
+  }
   .dock-item span { display:none; }
-  .dock-item { padding:10px 12px; }
-  .footer-top { grid-template-columns:1fr; }
-  .footer-bottom { flex-direction:column; text-align:center; }
+  .dock-item { padding:8px 10px; font-size:.9rem; }
+  
+  .wa-float {
+    bottom:calc(75px + env(safe-area-inset-bottom, 0));
+    left:16px;
+    width:50px;
+    height:50px;
+    font-size:1.4rem;
+  }
+  .back-top {
+    bottom:calc(75px + env(safe-area-inset-bottom, 0));
+    right:16px;
+    width:42px;
+    height:42px;
+  }
+  
+  .footer-top { grid-template-columns:1fr; gap:2rem; }
+  .footer-bottom { flex-direction:column; text-align:center; gap:.5rem; padding-bottom:calc(70px + env(safe-area-inset-bottom, 0)); }
   .hero-features { grid-template-columns:1fr; }
-  .section { padding:3.5rem 1.25rem; }
+  .section { padding:2.75rem 1rem; }
+  .page-header { padding:3.5rem 1rem 5rem; }
+  
+  /* Form adjustments */
+  .card { padding:1.5rem !important; }
 }
+
 @media(max-width:480px) {
   .grid-4 { grid-template-columns:1fr; }
-  .stats-bar { grid-template-columns:1fr 1fr; gap:1rem; padding:1.5rem; }
+  .stats-bar { grid-template-columns:1fr; gap:1rem; padding:1.25rem; }
   .steps { grid-template-columns:1fr; }
-  .hero h1 { font-size:1.75rem; }
+  .hero h1 { font-size:1.55rem; line-height:1.4; }
+  .btn { width:100%; justify-content:center; }
+  .slogan-badge { font-size:.9rem; padding:.5rem 1.25rem; }
+  .meta-pills { flex-direction:column; align-items:center; }
+  .meta-pill { width:100%; justify-content:center; }
 }
