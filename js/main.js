@@ -187,5 +187,288 @@
       });
     });
 
+    // ── 11. Realistic Leaflet Coverage Map Engine ────
+    const mapContainer = document.getElementById('realCoverageMap');
+    if (mapContainer && typeof L !== 'undefined') {
+      
+      const coverageCities = [
+        {
+          id: 'madinah',
+          name: 'المدينة المنورة',
+          isHQ: true,
+          lat: 24.4672,
+          lng: 39.6111,
+          icon: 'fas fa-star',
+          badge: 'المقر الرئيسي ★',
+          desc: 'حي الإسكان – طريق الهجرة | المركز الرئيسي وإدارة العمليات',
+          services: 'تقييم عقاري شامل، عقارات تجارية وسكنية وزراعية وخبرة قضائية معتمدة'
+        },
+        {
+          id: 'yanbu',
+          name: 'ينبع',
+          isHQ: false,
+          lat: 24.0895,
+          lng: 38.0637,
+          icon: 'fas fa-industry',
+          badge: 'تغطية معتمدة',
+          desc: 'محافظة ينبع، الهيئة الملكية، الموانئ والمنطقة الصناعية',
+          services: 'تقييم المنشآت الصناعية والمستودعات والمباني التجارية والسكنية'
+        },
+        {
+          id: 'jeddah',
+          name: 'جدة',
+          isHQ: false,
+          lat: 21.5433,
+          lng: 39.1728,
+          icon: 'fas fa-city',
+          badge: 'تغطية معتمدة',
+          desc: 'عروس البحر الأحمر، الأبراج والمراكز التجارية واللوجستية',
+          services: 'تقييم المراكز التجارية والمجمعات السكنية والمستودعات والمشاريع الكبرى'
+        },
+        {
+          id: 'alula',
+          name: 'العلا',
+          isHQ: false,
+          lat: 26.6080,
+          lng: 37.9220,
+          icon: 'fas fa-mountain-sun',
+          badge: 'تغطية معتمدة',
+          desc: 'محافظة العلا، الوجهات التراثية والمشاريع السياحية',
+          services: 'تقييم المنتجعات الفندقية والأصول التراثية والمزارع والأراضي الفضاء'
+        },
+        {
+          id: 'riyadh',
+          name: 'الرياض',
+          isHQ: false,
+          lat: 24.7136,
+          lng: 46.6753,
+          icon: 'fas fa-building-columns',
+          badge: 'تغطية معتمدة',
+          desc: 'العاصمة والمركز المالي، مقرات الصناديق والشركات الكبرى',
+          services: 'تقييم المحافظ الاستثمارية، الصناديق العقارية (REITs)، والأبراج والمجمعات'
+        },
+        {
+          id: 'makkah',
+          name: 'مكة المكرمة',
+          isHQ: false,
+          lat: 21.3891,
+          lng: 39.8579,
+          icon: 'fas fa-kaaba',
+          badge: 'تغطية معتمدة',
+          desc: 'العاصمة المقدسة، المنطقة المركزية، الأوقاف والمنشآت الفندقية',
+          services: 'تقييم الفنادق والأبراج الوقفية والمشاريع التطويرية ونزع الملكية'
+        },
+        {
+          id: 'eastern',
+          name: 'المنطقة الشرقية',
+          isHQ: false,
+          lat: 26.4207,
+          lng: 50.0888,
+          icon: 'fas fa-oil-well',
+          badge: 'تغطية معتمدة',
+          desc: 'الدمام، الخبر، الظهران، الجبيل، والأحساء',
+          services: 'تقييم الأصول اللوجستية والصناعية والأبراج والمجمعات التجارية والسكنية'
+        },
+        {
+          id: 'hafar',
+          name: 'حفر الباطن',
+          isHQ: false,
+          lat: 28.4328,
+          lng: 45.9708,
+          icon: 'fas fa-location-arrow',
+          badge: 'تغطية معتمدة',
+          desc: 'محافظة حفر الباطن والمراكز الحيوية بالشمال الشرقي',
+          services: 'تقييم العقارات السكنية والتجارية والمزارع والمشاريع الخدمية'
+        }
+      ];
+
+      // KSA Bounds
+      const ksaBounds = L.latLngBounds(
+        L.latLng(16.5, 34.5),
+        L.latLng(32.2, 55.5)
+      );
+
+      // Initialize Leaflet Map
+      const map = L.map('realCoverageMap', {
+        center: [24.5, 44.5],
+        zoom: 6,
+        minZoom: 5,
+        maxZoom: 17,
+        zoomControl: false,
+        scrollWheelZoom: false
+      });
+
+      // Add Custom Styled Zoom Control at bottom-left
+      L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+      // Fit KSA view on load
+      map.fitBounds(ksaBounds, { padding: [30, 30] });
+
+      // Available Map Layers
+      const layers = {
+        satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: '&copy; Esri & Maxar',
+          maxZoom: 18
+        }),
+        terrain: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; CartoDB & OpenStreetMap',
+          maxZoom: 18
+        }),
+        dark: L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; CartoDB & OpenStreetMap',
+          maxZoom: 18
+        })
+      };
+
+      // Default Layer: Satellite for maximum realism
+      let currentLayer = layers.satellite.addTo(map);
+
+      // Layer Switcher Buttons
+      document.querySelectorAll('.map-tool-btn[data-layer]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const layerKey = btn.getAttribute('data-layer');
+          if (layers[layerKey] && currentLayer !== layers[layerKey]) {
+            map.removeLayer(currentLayer);
+            currentLayer = layers[layerKey].addTo(map);
+            document.querySelectorAll('.map-tool-btn[data-layer]').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+          }
+        });
+      });
+
+      // Reset View Button
+      const resetBtn = document.getElementById('btnResetKsaView');
+      resetBtn?.addEventListener('click', () => {
+        map.flyToBounds(ksaBounds, { padding: [30, 30], duration: 1.2 });
+        clearCityHighlight();
+      });
+
+      // Add Glowing Flight/Network Lines from Madinah (HQ) to all branches
+      const hqCity = coverageCities.find(c => c.isHQ);
+      coverageCities.forEach(city => {
+        if (!city.isHQ) {
+          // Create a curved arc via midpoint offset
+          const midLat = (hqCity.lat + city.lat) / 2 + (city.lng - hqCity.lng) * 0.06;
+          const midLng = (hqCity.lng + city.lng) / 2 - (city.lat - hqCity.lat) * 0.06;
+          const curvePoints = [
+            [hqCity.lat, hqCity.lng],
+            [midLat, midLng],
+            [city.lat, city.lng]
+          ];
+          L.polyline(curvePoints, {
+            color: '#f4b41a',
+            weight: 2,
+            opacity: 0.75,
+            dashArray: '6, 8',
+            lineCap: 'round',
+            smoothFactor: 1
+          }).addTo(map);
+        }
+      });
+
+      // Add Custom Markers
+      const markers = {};
+      const cityCards = document.querySelectorAll('.city-card-item');
+
+      function highlightCity(cityId) {
+        cityCards.forEach(card => {
+          card.classList.toggle('is-active', card.getAttribute('data-city') === cityId);
+        });
+        Object.keys(markers).forEach(k => {
+          const el = document.getElementById(`mapPin-${k}`);
+          if (el) el.classList.toggle('is-active', k === cityId);
+        });
+      }
+
+      function clearCityHighlight() {
+        cityCards.forEach(card => card.classList.remove('is-active'));
+        Object.keys(markers).forEach(k => {
+          const el = document.getElementById(`mapPin-${k}`);
+          if (el) el.classList.remove('is-active');
+        });
+      }
+
+      coverageCities.forEach(city => {
+        const pinHtml = `
+          <div class="realistic-pin ${city.isHQ ? 'hq' : ''}" id="mapPin-${city.id}">
+            <div class="realistic-pin-badge">
+              <i class="${city.isHQ ? 'fas fa-crown' : 'fas fa-location-dot'}"></i>
+              <span>${city.name}</span>
+              ${city.isHQ ? '<span class="realistic-hq-tag">المقر الرئيسي</span>' : ''}
+            </div>
+            <div class="realistic-pin-icon">
+              <div class="realistic-pulse-ring"></div>
+              <i class="${city.icon}"></i>
+            </div>
+          </div>
+        `;
+
+        const pinIcon = L.divIcon({
+          html: pinHtml,
+          className: 'leaflet-div-icon',
+          iconSize: [120, 50],
+          iconAnchor: [60, 50]
+        });
+
+        const popupHtml = `
+          <div class="popup-card">
+            <div class="popup-head ${city.isHQ ? 'hq' : ''}">
+              <div class="popup-icon"><i class="${city.icon}"></i></div>
+              <div>
+                <h4 class="popup-title">${city.name}</h4>
+                <span class="popup-badge">${city.badge}</span>
+              </div>
+            </div>
+            <p class="popup-desc" style="color:var(--text);font-weight:700;margin-bottom:.35rem">${city.desc}</p>
+            <p class="popup-desc">${city.services}</p>
+            <a href="https://wa.me/966503312183?text=${encodeURIComponent('السلام عليكم، أود طلب تقييم عقاري في مدينة ' + city.name)}" target="_blank" rel="noopener noreferrer" class="popup-btn">
+              <i class="fab fa-whatsapp"></i> طلب تقييم في ${city.name}
+            </a>
+          </div>
+        `;
+
+        const marker = L.marker([city.lat, city.lng], { icon: pinIcon }).addTo(map);
+        marker.bindPopup(popupHtml, { maxWidth: 280, closeButton: true });
+        markers[city.id] = marker;
+
+        marker.on('click', () => {
+          highlightCity(city.id);
+          const card = document.querySelector(`.city-card-item[data-city="${city.id}"]`);
+          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+      });
+
+      // Synchronize Side Cards with Map
+      cityCards.forEach(card => {
+        const cityId = card.getAttribute('data-city');
+        const cityObj = coverageCities.find(c => c.id === cityId);
+
+        card.addEventListener('mouseenter', () => {
+          highlightCity(cityId);
+        });
+
+        card.addEventListener('mouseleave', () => {
+          // Keep active if popup is open
+        });
+
+        card.addEventListener('click', () => {
+          highlightCity(cityId);
+          if (cityObj && markers[cityId]) {
+            map.flyTo([cityObj.lat, cityObj.lng], 10, { duration: 1.2 });
+            setTimeout(() => {
+              markers[cityId].openPopup();
+            }, 600);
+          }
+        });
+      });
+
+      // Invalidate map size on window resize to ensure crisp tile rendering
+      window.addEventListener('resize', () => {
+        map.invalidateSize();
+      });
+    }
+
   });
 })();
+
+

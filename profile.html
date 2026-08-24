@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
@@ -10,6 +10,7 @@
 <meta name="description" content="الملف التعريفي الرسمي لشركة إنجاز القيمة للتقييم العقاري – ترخيص هيئة تقييم رقم (1210001214) وسجل تجاري رقم (4650248748).">
 <link rel="icon" type="image/png" href="image/LOGO.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
 <link rel="stylesheet" href="css/style.css">
 <style>
 /* ─── Specific Styles for Profile Page ─── */
@@ -147,6 +148,488 @@ html.dark .method-subtag {
   box-shadow: var(--sh-sm);
 }
 .partner-tag i { color: var(--teal); }
+
+/* ─── Coverage Map Styles ─── */
+.coverage-wrapper {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  padding: 2rem;
+  box-shadow: var(--sh-md);
+  margin-bottom: 5rem;
+  position: relative;
+  overflow: hidden;
+}
+.coverage-layout {
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  gap: 2rem;
+  align-items: stretch;
+}
+@media (max-width: 1024px) {
+  .coverage-layout {
+    grid-template-columns: 1fr;
+    gap: 1.75rem;
+  }
+}
+.map-canvas-box {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 540px;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.06);
+}
+#realCoverageMap {
+  width: 100%;
+  height: 100%;
+  min-height: 540px;
+  border-radius: var(--r-lg);
+  z-index: 1;
+}
+.map-toolbar {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 999;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  background: rgba(7, 46, 51, 0.90);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+@media (max-width: 580px) {
+  .map-toolbar {
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    justify-content: center;
+    border-radius: var(--r-md);
+  }
+}
+.map-tool-btn {
+  background: transparent;
+  color: rgba(255,255,255,0.85);
+  border: none;
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+.map-tool-btn:hover {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+.map-tool-btn.active {
+  background: var(--teal);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(0,132,137,0.5);
+}
+.map-tool-btn.reset-btn {
+  background: rgba(244,180,26,0.18);
+  color: var(--gold-light);
+  border: 1px solid rgba(244,180,26,0.3);
+}
+.map-tool-btn.reset-btn:hover {
+  background: var(--gold);
+  color: #072e33;
+}
+
+/* Custom Styled Leaflet Zoom Controls */
+.leaflet-left .leaflet-control {
+  margin-left: 14px !important;
+  margin-bottom: 14px !important;
+}
+.leaflet-control-zoom {
+  border: 1px solid rgba(255,255,255,0.25) !important;
+  border-radius: var(--r-md) !important;
+  overflow: hidden !important;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.35) !important;
+  background: rgba(7, 46, 51, 0.90) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+}
+.leaflet-control-zoom a {
+  background: transparent !important;
+  color: #ffffff !important;
+  border-bottom: 1px solid rgba(255,255,255,0.15) !important;
+  width: 36px !important;
+  height: 36px !important;
+  line-height: 36px !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--teal) !important;
+  color: #ffffff !important;
+}
+.leaflet-control-zoom a:last-child {
+  border-bottom: none !important;
+}
+
+/* Realistic Leaflet Marker Styles */
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
+}
+.realistic-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -100%);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto;
+}
+.realistic-pin:hover, .realistic-pin.is-active {
+  transform: translate(-50%, -115%) scale(1.15);
+  z-index: 1000 !important;
+}
+.realistic-pin-badge {
+  background: rgba(7, 46, 51, 0.94);
+  color: #fff;
+  font-family: 'Cairo', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 3px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.25);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+.realistic-pin.hq .realistic-pin-badge {
+  background: var(--grad-gold);
+  color: #072e33;
+  border-color: #ffffff;
+  font-weight: 900;
+  box-shadow: 0 4px 16px rgba(244,180,26,0.4);
+}
+.realistic-hq-tag {
+  font-size: 9px;
+  background: #072e33;
+  color: var(--gold-light);
+  padding: 1px 5px;
+  border-radius: 999px;
+}
+.realistic-pin-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--teal-light), var(--teal));
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,132,137,0.7);
+  border: 2px solid #ffffff;
+  position: relative;
+}
+.realistic-pin.hq .realistic-pin-icon {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold-dark));
+  color: #072e33;
+  font-size: 16px;
+  border: 2.5px solid #ffffff;
+  box-shadow: 0 4px 20px rgba(244,180,26,0.8);
+}
+.realistic-pulse-ring {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--teal);
+  animation: realisticRadar 2.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+  pointer-events: none;
+}
+.realistic-pin.hq .realistic-pulse-ring {
+  border-color: var(--gold);
+  animation-duration: 1.7s;
+}
+@keyframes realisticRadar {
+  0% { transform: scale(0.6); opacity: 1; }
+  60% { transform: scale(1.8); opacity: 0.4; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+
+/* Realistic Leaflet Popups */
+.leaflet-popup-content-wrapper {
+  background: var(--card-bg) !important;
+  color: var(--text) !important;
+  border-radius: var(--r-md) !important;
+  padding: 0 !important;
+  overflow: hidden;
+  box-shadow: 0 12px 35px rgba(0,0,0,0.22) !important;
+  border: 1px solid var(--border) !important;
+  direction: rtl;
+  text-align: right;
+  font-family: 'Tajawal', 'Cairo', sans-serif;
+}
+.leaflet-popup-content {
+  margin: 0 !important;
+  line-height: 1.6;
+}
+.leaflet-popup-tip {
+  background: var(--card-bg) !important;
+}
+.popup-card {
+  padding: 1.25rem;
+  min-width: 230px;
+  max-width: 280px;
+}
+.popup-head {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  margin-bottom: .6rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: .6rem;
+}
+.popup-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-sm);
+  background: rgba(0,132,137,0.12);
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+.popup-head.hq .popup-icon {
+  background: var(--grad-gold);
+  color: #072e33;
+}
+.popup-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--text);
+  margin: 0;
+}
+.popup-badge {
+  font-size: .65rem;
+  background: var(--gold);
+  color: #072e33;
+  padding: .15rem .45rem;
+  border-radius: 999px;
+  font-weight: 800;
+  display: inline-block;
+  margin-top: 2px;
+}
+.popup-desc {
+  font-size: .82rem;
+  color: var(--muted);
+  margin-bottom: .85rem;
+}
+.popup-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  width: 100%;
+  padding: .5rem 1rem;
+  background: var(--teal);
+  color: #fff !important;
+  font-size: .8rem;
+  font-weight: 700;
+  border-radius: var(--r-sm);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.popup-btn:hover {
+  background: var(--teal-dark);
+}
+
+
+/* Side List of Cities */
+.coverage-city-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .85rem;
+}
+@media (max-width: 580px) {
+  .coverage-city-list {
+    grid-template-columns: 1fr;
+  }
+}
+.city-card-item {
+  background: var(--off-white);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: .9rem 1rem;
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.city-card-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--teal);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.city-card-item:hover, .city-card-item.is-active {
+  background: var(--card-bg);
+  border-color: var(--teal);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-sm);
+}
+.city-card-item:hover::before, .city-card-item.is-active::before {
+  opacity: 1;
+}
+.city-card-item.hq {
+  border-color: rgba(244,180,26,0.5);
+  background: rgba(244,180,26,0.06);
+}
+.city-card-item.hq::before {
+  background: var(--gold);
+  opacity: 1;
+}
+.city-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-sm);
+  background: rgba(0,132,137,0.1);
+  color: var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  transition: all 0.25s ease;
+}
+.city-card-item.hq .city-card-icon {
+  background: var(--grad-gold);
+  color: #072e33;
+}
+.city-card-item:hover .city-card-icon,
+.city-card-item.is-active .city-card-icon {
+  background: var(--teal);
+  color: #fff;
+}
+.city-card-item.hq:hover .city-card-icon,
+.city-card-item.hq.is-active .city-card-icon {
+  background: var(--gold);
+  color: #072e33;
+}
+.city-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.city-card-name {
+  font-weight: 800;
+  font-size: .92rem;
+  color: var(--text);
+  margin-bottom: 2px;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.city-card-desc {
+  font-size: .75rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.coverage-badge-hq {
+  font-size: .65rem;
+  font-weight: 800;
+  background: var(--gold);
+  color: #072e33;
+  padding: .15rem .45rem;
+  border-radius: 999px;
+  letter-spacing: normal;
+}
+
+/* Slogan & Logo Card in Coverage Section */
+.coverage-slogan-card {
+  margin-top: 1.25rem;
+  background: linear-gradient(135deg, rgba(7, 46, 51, 0.96) 0%, rgba(0, 132, 137, 0.92) 100%);
+  border: 1px solid rgba(244, 180, 26, 0.4);
+  border-radius: var(--r-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 8px 25px rgba(0, 132, 137, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+.coverage-slogan-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(244, 180, 26, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+.coverage-slogan-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0,0,0,0.35));
+  flex-shrink: 0;
+  border-radius: 8px;
+}
+.coverage-slogan-content {
+  flex: 1;
+  min-width: 0;
+}
+.coverage-slogan-text {
+  font-family: 'Cairo', sans-serif;
+  font-weight: 900;
+  font-size: 1.25rem;
+  color: var(--gold-light);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+.coverage-slogan-text .slogan-icon {
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+.coverage-slogan-sub {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 700;
+}
 </style>
 </head>
 <body>
@@ -417,6 +900,135 @@ html.dark .method-subtag {
       </div>
     </div>
 
+    <!-- ─── 7.5 GEOGRAPHICAL COVERAGE MINI MAP ─── -->
+    <div style="margin-bottom:5rem" id="coverageSection">
+      <div class="section-head">
+        <span class="section-label">النطاق الجغرافي</span>
+        <h2 class="section-title">تغطيتنا الجغرافية في المملكة العربية السعودية</h2>
+        <p class="section-desc">نمتلك شبكة تغطية ميدانية واسعة تشمل أهم المدن والمناطق الاستراتيجية لتنفيذ أعمال التقييم العقاري بسرعة وكفاءة عالية:</p>
+      </div>
+
+      <div class="coverage-wrapper">
+        <div class="coverage-layout">
+          
+          <!-- Realistic Leaflet Interactive GIS Map -->
+          <div class="map-canvas-box">
+            <!-- Map Layer Switcher Toolbar -->
+            <div class="map-toolbar">
+              <button class="map-tool-btn active" data-layer="satellite"><i class="fas fa-satellite"></i> أقمار صناعية واقعية</button>
+              <button class="map-tool-btn" data-layer="terrain"><i class="fas fa-mountain-city"></i> خريطة تضاريس</button>
+              <button class="map-tool-btn" data-layer="dark"><i class="fas fa-moon"></i> نمط ليلي</button>
+              <button class="map-tool-btn reset-btn" id="btnResetKsaView" title="إعادة ضبط العرض لكامل المملكة"><i class="fas fa-expand"></i> كامل المملكة</button>
+            </div>
+
+            <!-- Leaflet Map Canvas -->
+            <div id="realCoverageMap"></div>
+          </div>
+
+          <!-- Cities List Cards -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem">
+              <h3 style="font-size:1.15rem;font-weight:800;color:var(--text)"><i class="fas fa-map-location-dot" style="color:var(--teal);margin-left:.4rem"></i> المدن والمناطق المغطاة</h3>
+              <span style="font-size:.78rem;color:var(--muted);font-weight:700"><i class="fas fa-info-circle"></i> اضغط لتحديد الموقع</span>
+            </div>
+
+            <div class="coverage-city-list">
+              
+              <!-- 1. Al Madinah -->
+              <div class="city-card-item hq" data-city="madinah">
+                <div class="city-card-icon"><i class="fas fa-star"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">
+                    <span>المدينة المنورة</span>
+                    <span class="coverage-badge-hq">المقر الرئيسي</span>
+                  </div>
+                  <div class="city-card-desc">حي الإسكان، طريق الهجرة</div>
+                </div>
+              </div>
+
+              <!-- 2. Yanbu -->
+              <div class="city-card-item" data-city="yanbu">
+                <div class="city-card-icon"><i class="fas fa-industry"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">ينبع</div>
+                  <div class="city-card-desc">الهيئة الملكية والموانئ والمناطق الصناعية</div>
+                </div>
+              </div>
+
+              <!-- 3. Jeddah -->
+              <div class="city-card-item" data-city="jeddah">
+                <div class="city-card-icon"><i class="fas fa-city"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">جدة</div>
+                  <div class="city-card-desc">الأبراج والأنشطة التجارية واللوجستية</div>
+                </div>
+              </div>
+
+              <!-- 4. AlUla -->
+              <div class="city-card-item" data-city="alula">
+                <div class="city-card-icon"><i class="fas fa-mountain-sun"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">العلا</div>
+                  <div class="city-card-desc">المشاريع السياحية والتراثية الكبرى</div>
+                </div>
+              </div>
+
+              <!-- 5. Riyadh -->
+              <div class="city-card-item" data-city="riyadh">
+                <div class="city-card-icon"><i class="fas fa-building-columns"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">الرياض</div>
+                  <div class="city-card-desc">العاصمة والمراكز المالية والاستثمارية</div>
+                </div>
+              </div>
+
+              <!-- 6. Makkah -->
+              <div class="city-card-item" data-city="makkah">
+                <div class="city-card-icon"><i class="fas fa-kaaba"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">مكة المكرمة</div>
+                  <div class="city-card-desc">العاصمة المقدسة والأوقاف والفنادق</div>
+                </div>
+              </div>
+
+              <!-- 7. Eastern Province -->
+              <div class="city-card-item" data-city="eastern">
+                <div class="city-card-icon"><i class="fas fa-oil-well"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">المنطقة الشرقية</div>
+                  <div class="city-card-desc">الدمام، الخبر، الظهران، والأحساء</div>
+                </div>
+              </div>
+
+              <!-- 8. Hafar Al-Batin -->
+              <div class="city-card-item" data-city="hafar">
+                <div class="city-card-icon"><i class="fas fa-map-pin"></i></div>
+                <div class="city-card-info">
+                  <div class="city-card-name">حفر الباطن</div>
+                  <div class="city-card-desc">المنطقة الشمالية الشرقية والمراكز الحيوية</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Slogan & Logo Banner -->
+            <div class="coverage-slogan-card">
+              <img src="image/LOGO.png" alt="شركة إنجاز القيمة" class="coverage-slogan-logo">
+              <div class="coverage-slogan-content">
+                <div class="coverage-slogan-text">
+                  <i class="fas fa-check-circle slogan-icon"></i>
+                  <span>إنجاز قيمة وقمة</span>
+                </div>
+                <div class="coverage-slogan-sub">شركة إنجاز القيمة للتقييم العقاري المعتمد</div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <!-- ─── 8. WHY ENJAZ DISTINCTION ─── -->
     <div style="margin-bottom:5rem">
       <div class="section-head">
@@ -487,7 +1099,7 @@ html.dark .method-subtag {
     <div class="footer-top">
       <div class="footer-brand"><a href="index.html" class="nav-logo" style="margin-bottom:.75rem"><img src="image/LOGO.png" alt="إنجاز" style="height:58px;width:auto;border-radius:10px"><div class="brand-text"><span class="main">شركة إنجاز القيمة</span><span class="sub">للتقييم العقاري المعتمد</span></div></a><p>شركة إنجاز القيمة للتقييم العقاري مرخصة رسمياً من الهيئة السعودية للمقيمين المعتمدين (تقييم) برقم ترخيص (1210001214) وسجل تجاري (4650248748).</p><div class="socials"><a href="#" class="social-btn"><i class="fab fa-x-twitter"></i></a><a href="#" class="social-btn"><i class="fab fa-linkedin-in"></i></a><a href="https://www.instagram.com/enjaz.alqima/" target="_blank" rel="noopener noreferrer" class="social-btn"><i class="fab fa-instagram"></i></a><a href="https://wa.me/966503312183" target="_blank" rel="noopener noreferrer" class="social-btn"><i class="fab fa-whatsapp"></i></a></div></div>
       <div class="footer-col"><h4>روابط سريعة</h4><ul><li><a href="index.html">الرئيسية</a></li><li><a href="about.html">من نحن</a></li><li><a href="profile.html">الملف التعريفي</a></li><li><a href="services.html">خدماتنا</a></li><li><a href="faq.html">الأسئلة الشائعة</a></li><li><a href="contact.html">تواصل معنا</a></li></ul></div>
-      <div class="footer-col"><h4>خدماتنا</h4><ul><li><a href="services.html">تقييم سكني</a></li><li><a href="services.html">تقييم تجاري</a></li><li><a href="services.html">تقييم زراعي</a></li><li><a href="services.html">تقييم الأراضي</a></li><li><a href="services.html">تقييم رهن بنكي</a></li></ul></div>
+
       <div class="footer-col footer-contact"><h4>تواصل معنا</h4><ul class="footer-contact" style="gap:.85rem"><li><a href="tel:0503312183" style="color:inherit;text-decoration:none"><i class="fas fa-phone-alt"></i> 0503312183</a></li><li><a href="https://maps.app.goo.gl/EBXbbpuvEe8iRKoi7" target="_blank" rel="noopener noreferrer" style="color:inherit;text-decoration:none"><i class="fas fa-map-marker-alt"></i> المدينة المنورة، حي الإسكان</a></li><li><i class="fas fa-clock"></i> الأحد – الخميس: 9:30 ص – 6:30 م</li></ul></div>
     </div>
     <div class="footer-bottom"><p>© 2026 شركة إنجاز القيمة للتقييم العقاري. جميع الحقوق محفوظة.</p><p>ترخيص رقم: (1210001214) | مطابق لمعايير IVSC</p></div>
@@ -505,6 +1117,7 @@ html.dark .method-subtag {
 </div>
 <a href="https://wa.me/966503312183" target="_blank" rel="noopener noreferrer" class="wa-float"><i class="fab fa-whatsapp"></i></a>
 <button class="back-top"><i class="fas fa-arrow-up"></i></button>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="js/main.js"></script>
 </body>
 </html>
